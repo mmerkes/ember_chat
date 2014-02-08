@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang='en'>
+<head>
+	<title>Chat</title>
+	<link rel='stylesheet' href='/stylesheets/style.css'></link>
+</head>
+
+<body>
+<div id='content'>
+  <button id='joinRoom'>Join Room</button>
+</div>
+
+<script src='//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js' type='text/javascript'></script>
+<script src='http://code.jquery.com/jquery-1.8.0.min.js' type='text/javascript'></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  $(document).ready( function() {
+    var socket = io.connect('http://localhost');
+    
+    // Handle name choosing
+    socket.on('chooseName', function() {
+    	socket.emit('nameChosen', { name: prompt("What's your chat name?")});
+    	socket.on('nameSuccess', function(data) {
+    		$('#content').append('<h1>Welcome ' + data.name + '!');
+    	});
+    	socket.on('nameTaken', function() {
+    		socket.emit('nameChosen', { name: prompt("Sorry, that name's taken. Please choose another name:")});
+    	});
+    });
+
+    // Handle incoming messages
+    socket.on('message', function( data ) {
+      $('#content').append('<p>' + data.message + '</p>');
+    });
+
+    // Handle room joining
+    $('#joinRoom').click( function() {
+      socket.emit('joinRoom', { room : prompt("What room would you like to join?")});
+      socket.on('roomJoin', function(data) {
+        console.log('Broadcast worked.');
+        $('#content').append("<p>You've successfully joined " + data.room);
+      });
+    });
+
+    // Handle incoming guests
+    socket.on( 'incomingGuest', function(data) {
+      $('#content').append('<p>' + data.name + ' has joined the room.</p>');
+    });
+
+    // Handle departing guests
+    socket.on( 'departingGuest', function(data) {
+      $('#content').append('<p>' + data.name + ' has left the room.</p>');
+    });
+  });
+</script>
+</body>
+</html>
