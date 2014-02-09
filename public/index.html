@@ -61,7 +61,7 @@
 <script src='/bootstrap/js/bootstrap.min.js'></script>
 <script>
   $(document).ready( function() {
-    var socket = io.connect('http://shielded-harbor-3038.herokuapp.com');
+    var socket = io.connect('http://localhost');
     
     // Handle name choosing
     socket.on('chooseName', function() {
@@ -112,7 +112,10 @@
 
     // Handle departing guests
     socket.on( 'departingGuest', function(data) {
-      $('#messageBoard').append('<p>' + data.name + ' has left the room.</p>');
+      console.log('Guest departing...');
+      if( data.name !== undefined ) {
+        $('#messageBoard').append('<p>' + data.name + ' has left the room.</p>');
+      }
     });
 
     // update guest list
@@ -135,7 +138,6 @@
 
     // Request a rooms list every 10 seconds
     window.setInterval( function() {
-      console.log('Requesting rooms...');
       socket.emit('updateRooms');
     }, 10000);
 
