@@ -78,6 +78,7 @@
     		$('#messageBoard').append('<p>Welcome ' + data.name + '!</p>');
         $('#messageBox').show();
         $('#getUser').hide();
+        $('#messageInput').focus();
     	});
     	socket.on('nameTaken', function() {
     		alert('That name is already taken!');
@@ -147,22 +148,26 @@
     // Allow enter along with click for inputs
     $('#messageInput').keypress(function(e) {
       if(e.which == 13) {
-        $(this).blur();
-        $('#submitMessage').focus().click();
+        $(this).blur().focus();
+        $('#submitMessage').click();
       }
     });
     $('#enterName').keypress(function(e) {
       if(e.which == 13) {
         $(this).blur();
-        $('#submitName').focus().click();
+        $('#submitName').click();
       }
     });
     $('#joinRoom').keypress(function(e) {
       if(e.which == 13) {
-        $(this).blur();
-        $('#joinButton').focus().click();
+        $('#joinButton').click();
+        $(this).blur().val(null);
       }
     });
+
+    // Keep scrolling message box with new messages coming in.
+    var messageBoard = $('#messageBoard');
+    messageBoard.scrollTop( messageBoard.get(0).scrollHeight );
   });
 </script>
 </body>
