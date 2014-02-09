@@ -2,6 +2,11 @@
   "name": "application-name",
   "version": "0.0.1",
   "private": true,
+  "description": "This is a simple chat server using Socket.io, Node.js, and eventually Ember.js",
+  "main": "app.js",
+  "engines": {
+    "node": "0.10.x"
+  },
   "scripts": {
     "start": "node app.js"
   },
@@ -9,5 +14,11 @@
     "express": "3.4.8",
     "jade": "*",
     "socket.io": "0.9.x"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mmerkes/ember_chat.git"
+  },
+  "author": "Matt Merkes",
+  "license": "MIT"
 }
