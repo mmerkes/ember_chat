@@ -112,7 +112,6 @@
 
     // Handle departing guests
     socket.on( 'departingGuest', function(data) {
-      console.log('Guest departing...');
       if( data.name !== undefined ) {
         $('#messageBoard').append('<p>' + data.name + ' has left the room.</p>');
       }
