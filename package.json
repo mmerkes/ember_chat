@@ -20,5 +20,6 @@
     "url": "https://github.com/mmerkes/ember_chat.git"
   },
   "author": "Matt Merkes",
-  "license": "MIT"
+  "license": "MIT",
+  "url": "http://shielded-harbor-3038.herokuapp.com"
 }
