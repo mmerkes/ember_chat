@@ -62,10 +62,12 @@
 <script>
   $(document).ready( function() {
     // For Heroku
-    var socket = io.connect('http://shielded-harbor-3038.herokuapp.com/');
+    //var socket = io.connect('http://shielded-harbor-3038.herokuapp.com/');
 
     // For localhost
-    //var socket = io.connect('http://localhost');
+    var socket = io.connect('http://localhost');
+
+    var messageBoard = $('#messageBoard');
     
     // Handle name choosing
     socket.on('chooseName', function() {
@@ -166,8 +168,9 @@
     });
 
     // Keep scrolling message box with new messages coming in.
-    var messageBoard = $('#messageBoard');
-    messageBoard.scrollTop( messageBoard.get(0).scrollHeight );
+    messageBoard.bind('DOMNodeInserted', function() {
+      messageBoard.scrollTop( messageBoard.prop('scrollHeight') );
+    });
   });
 </script>
 </body>
