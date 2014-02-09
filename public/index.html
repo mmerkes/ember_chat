@@ -62,10 +62,10 @@
 <script>
   $(document).ready( function() {
     // For Heroku
-    //var socket = io.connect('http://shielded-harbor-3038.herokuapp.com/');
+    var socket = io.connect('http://shielded-harbor-3038.herokuapp.com/');
 
     // For localhost
-    var socket = io.connect('http://localhost');
+    //var socket = io.connect('http://localhost');
 
     var messageBoard = $('#messageBoard');
     
