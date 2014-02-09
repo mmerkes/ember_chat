@@ -2,16 +2,63 @@
 <html lang='en'>
 <head>
 	<title>Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="/bootstrap/css/amelia.bootstrap.min.css" rel="stylesheet">
 	<link rel='stylesheet' href='/stylesheets/style.css'></link>
 </head>
 
 <body>
-<div id='content'>
-  <button id='joinRoom'>Join Room</button>
-</div>
+  <div class="container">
+    <div class="row">
+      <h1>Welcome to Ember Chat!</h1>
+    </div>
+    <div class="col-sm-6" id="chatBox">
+      <div id="getUser" class="alert alert-dismissable alert-danger">
+        <label class="control-label" for="enterName">Enter your username</label>
+        <input class="form-control" id="enterName" type="text" placeholder="Enter username here">
+        <div class="buttonCenter">
+          <button class="btn btn-success form-control" id="submitName">Submit</button>
+        </div>
+      </div>
+      <div id="messageBox" class="alert alert-danger">
+        <h2 id="username"></h2>
+        <div id="messageBoard"></div>
+        <div id="messageControl">
+          <label class="control-label" for="messageInput">Message</label>
+          <input type="text" class="form-control" placeholder="Enter message here" id="messageInput">
+          <div class="buttonCenter">
+            <button class="btn btn-primary" id="submitMessage">  Send  </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-4" id="roomBox">
+      <div id="joinBox" class="well">
+        <label class="control-label" for="joinRoom">Join a room</label>
+        <input class="form-control" id="joinRoom" type="text" placeholder="Enter room name">
+        <div class="buttonCenter">
+          <button class="btn btn-success" id="joinButton">  Submit  </button>
+        </div>
+      </div>
+      <div id="roomInfo">
+        <div class="panel panel-primary">
+          <div class="panel-heading" id="roomHeading">Not currently in a room
+          </div>
+          <ul class="list-group" id="guestList">
+          </ul>
+        </div>
+        <div class="panel panel-primary">
+          <div class="panel-heading" id="roomListHeading">Available Rooms</div>
+          <ul class="list-group" id="roomList">
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
 
-<script src='//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js' type='text/javascript'></script>
-<script src='http://code.jquery.com/jquery-1.8.0.min.js' type='text/javascript'></script>
+<script src='//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js'></script>
+<script src='http://code.jquery.com/jquery-1.8.0.min.js'></script>
+<script src='/bootstrap/js/bootstrap.min.js'></script>
 <script src="/socket.io/socket.io.js"></script>
 <script>
   $(document).ready( function() {
@@ -19,37 +66,98 @@
     
     // Handle name choosing
     socket.on('chooseName', function() {
-    	socket.emit('nameChosen', { name: prompt("What's your chat name?")});
+      $('#submitName').click( function() {
+        socket.emit('nameChosen', { name : $('#enterName').val() });
+      });
+    	
     	socket.on('nameSuccess', function(data) {
-    		$('#content').append('<h1>Welcome ' + data.name + '!');
+        $('#username').text(data.name);
+    		$('#messageBoard').append('<p>Welcome ' + data.name + '!</p>');
+        $('#messageBox').show();
+        $('#getUser').hide();
     	});
     	socket.on('nameTaken', function() {
-    		socket.emit('nameChosen', { name: prompt("Sorry, that name's taken. Please choose another name:")});
+    		alert('That name is already taken!');
     	});
     });
 
     // Handle incoming messages
     socket.on('message', function( data ) {
-      $('#content').append('<p>' + data.message + '</p>');
+      $('#messageBoard').append('<p>' + data.message + '</p>');
     });
 
     // Handle room joining
-    $('#joinRoom').click( function() {
-      socket.emit('joinRoom', { room : prompt("What room would you like to join?")});
-      socket.on('roomJoin', function(data) {
-        console.log('Broadcast worked.');
-        $('#content').append("<p>You've successfully joined " + data.room);
-      });
+    $('#joinButton').click( function() {
+      socket.emit('joinRoom', { room : $('#joinRoom').val() });
+    });
+
+    // Handle joining a room
+    socket.on('roomJoined', function(data) {
+      $('#messageBoard').append("<p>You've successfully joined " + data.room);
+      $('#roomHeading').text('Guests in ' + data.room);
+      socket.emit('updateRooms');
+    });
+
+    // Handle sending messages
+    $('#submitMessage').click( function() {
+      var message = $('#messageInput').val();
+      socket.emit('message', { message : message });
+      $('#messageBoard').append('<p><strong>You:</strong> ' + message + '</p>');
+      $('#messageInput').val(null);
     });
 
     // Handle incoming guests
     socket.on( 'incomingGuest', function(data) {
-      $('#content').append('<p>' + data.name + ' has joined the room.</p>');
+      $('#messageBoard').append('<p>' + data.name + ' has joined the room.</p>');
     });
 
     // Handle departing guests
     socket.on( 'departingGuest', function(data) {
-      $('#content').append('<p>' + data.name + ' has left the room.</p>');
+      $('#messageBoard').append('<p>' + data.name + ' has left the room.</p>');
+    });
+
+    // update guest list
+    socket.on('updateGuestList', function(data) {
+      $('#guestList').empty();
+      var guests = data.guests;
+      guests.forEach( function(guest) {
+        $('#guestList').append('<li class="list-group-item">' + guest + '</li>');
+      });
+    });
+
+    // update the list of rooms
+    socket.on('updateRoomList', function(data) {
+      $('#roomList').empty();
+      var rooms = data.rooms;
+      rooms.forEach( function(room) {
+        $('#roomList').append('<li class="list-group-item">' + room + '</li>');
+      });
+    });
+
+    // Request a rooms list every 10 seconds
+    window.setInterval( function() {
+      console.log('Requesting rooms...');
+      socket.emit('updateRooms');
+    }, 10000);
+
+    // Allow enter along with click for inputs
+    $('#messageInput').keypress(function(e) {
+      if(e.which == 13) {
+        $(this).blur();
+        $('#submitMessage').focus().click();
+      }
+    });
+    $('#enterName').keypress(function(e) {
+      if(e.which == 13) {
+        $(this).blur();
+        $('#submitName').focus().click();
+      }
+    });
+    $('#joinRoom').keypress(function(e) {
+      if(e.which == 13) {
+        $(this).blur();
+        $('#joinButton').focus().click();
+      }
     });
   });
 </script>
