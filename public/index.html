@@ -61,7 +61,11 @@
 <script src='/bootstrap/js/bootstrap.min.js'></script>
 <script>
   $(document).ready( function() {
-    var socket = io.connect('http://localhost');
+    // For Heroku
+    var socket = io.connect('http://shielded-harbor-3038.herokuapp.com/');
+
+    // For localhost
+    //var socket = io.connect('http://localhost');
     
     // Handle name choosing
     socket.on('chooseName', function() {
