@@ -61,27 +61,41 @@
 <script src='/bootstrap/js/bootstrap.min.js'></script>
 <script>
   $(document).ready( function() {
+    // Create a socket connection to the server
     // For Heroku
     var socket = io.connect('http://shielded-harbor-3038.herokuapp.com/');
 
     // For localhost
     //var socket = io.connect('http://localhost');
 
+    // Store a variable for the message board
     var messageBoard = $('#messageBoard');
+
+    // Focus on the input to enter a username
+    $('#enterName').focus();
     
     // Handle name choosing
     socket.on('chooseName', function() {
+      // Let the server know the user choosen a name
       $('#submitName').click( function() {
         socket.emit('nameChosen', { name : $('#enterName').val() });
       });
     	
+      // Handle the success response from the server for
+      // the username being chosen successfully
     	socket.on('nameSuccess', function(data) {
+        // Update the username on the page
         $('#username').text(data.name);
+        // Send a welcome message
     		$('#messageBoard').append('<p>Welcome ' + data.name + '!</p>');
+        // Display the message box
         $('#messageBox').show();
+        // Hide the div to request a username
         $('#getUser').hide();
+        // Focus on the message input for the user to enter a message
         $('#messageInput').focus();
     	});
+      // Notify the user that the name is already taken
     	socket.on('nameTaken', function() {
     		alert('That name is already taken!');
     	});
@@ -89,45 +103,57 @@
 
     // Handle incoming messages
     socket.on('message', function( data ) {
+      // add message to the message board
       $('#messageBoard').append('<p>' + data.message + '</p>');
     });
 
     // Handle room joining
     $('#joinButton').click( function() {
+      // Request to the server to join a new room
       socket.emit('joinRoom', { room : $('#joinRoom').val() });
     });
 
     // Handle joining a room
     socket.on('roomJoined', function(data) {
+      // Let the user know they've successfully joined the room
       $('#messageBoard').append("<p>You've successfully joined " + data.room);
+      // Let the user know who else is in the room
       $('#roomHeading').text('Guests in ' + data.room);
       socket.emit('updateRooms');
+      // Send the user back to the message input
+      $('#messageInput').focus();
     });
 
     // Handle sending messages
     $('#submitMessage').click( function() {
       var message = $('#messageInput').val();
+      // Send a message to your room
       socket.emit('message', { message : message });
       $('#messageBoard').append('<p><strong>You:</strong> ' + message + '</p>');
+      // clear the message input
       $('#messageInput').val(null);
     });
 
     // Handle incoming guests
     socket.on( 'incomingGuest', function(data) {
+      // Let the user know a new guest has entered the room
       $('#messageBoard').append('<p>' + data.name + ' has joined the room.</p>');
     });
 
     // Handle departing guests
     socket.on( 'departingGuest', function(data) {
       if( data.name !== undefined ) {
+        // Let the user know a guest has left the room
         $('#messageBoard').append('<p>' + data.name + ' has left the room.</p>');
       }
     });
 
-    // update guest list
+    // Response from the server that the guest list has been updated
     socket.on('updateGuestList', function(data) {
+      // Clear the guest list to refresh
       $('#guestList').empty();
       var guests = data.guests;
+      // Iterate through the guests and add them to the guest list
       guests.forEach( function(guest) {
         $('#guestList').append('<li class="list-group-item">' + guest + '</li>');
       });
@@ -135,8 +161,10 @@
 
     // update the list of rooms
     socket.on('updateRoomList', function(data) {
+      // Clear the room list to refresh
       $('#roomList').empty();
       var rooms = data.rooms;
+      // Iterate through the rooms and update the room list
       rooms.forEach( function(room) {
         $('#roomList').append('<li class="list-group-item">' + room + '</li>');
       });
@@ -149,25 +177,31 @@
 
     // Allow enter along with click for inputs
     $('#messageInput').keypress(function(e) {
+      // Listen for the return key in the message input
       if(e.which == 13) {
         $(this).blur().focus();
+        // Trigger a click on the submit message button
+        // to trigger the events
         $('#submitMessage').click();
       }
     });
     $('#enterName').keypress(function(e) {
       if(e.which == 13) {
         $(this).blur();
+        // Trigger a click to submit the username
         $('#submitName').click();
       }
     });
     $('#joinRoom').keypress(function(e) {
       if(e.which == 13) {
+        // Trigger a click on the join room button
         $('#joinButton').click();
         $(this).blur().val(null);
       }
     });
 
-    // Keep scrolling message box with new messages coming in.
+    // Keep scrolling message box with new messages coming in
+    // to keep the view on the button of the messages
     messageBoard.bind('DOMNodeInserted', function() {
       messageBoard.scrollTop( messageBoard.prop('scrollHeight') );
     });

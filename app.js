@@ -27,7 +27,7 @@ if ('development' == app.get('env')) {
   app.use(express.errorHandler());
 }
 
-//require('./routes')(app);
+// require chat server and run
 require('./lib/chat_server.js')(server);
 
 app.get('/', function( request, response ) {
